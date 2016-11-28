@@ -1,10 +1,9 @@
-'use strict'
-
-/*
-    This file implements WebGL functionality; by using shaders and WebGL API to render 3D objects into a HTML canvas
-*/
 
 var gl;
+
+function initShaders() {
+
+}
 
 function readTextFile(filePath) {
     var fileText = new XMLHttpRequest();
@@ -16,7 +15,7 @@ function readTextFile(filePath) {
             if(fileText.status === 200 || fileText.status == 0)
             {
                 alert(fileText.responseText);
-                loadJSON(JSON.parse(fileText.responseText));
+                return fileText.responseText;
             }
         }
     }
@@ -44,6 +43,16 @@ function loadJSON(jsonData)
     indexBuffer.numItems = jsonData.indices.length;
 }
 
+function drawScene()
+{
+    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if(normalBuffer == null || vertexBuffer == null || indexBuffer == null)
+    {
+        return;
+    }
+}
+
 function initGL(canvas)
 {
     try {
@@ -62,6 +71,8 @@ function webGLStart()
 {
     var canvas = document.getElementById("webgl");
     initGL(canvas);
-    gl.clearColor(0.0, 0.5, 0.5, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    loadJSON();
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.enable(gl.DEPTH_TEST);
+    drawScene();
 }
