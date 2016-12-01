@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Assignment 7</title>
+<script id="vertex-shader-code" type="x-shader/x-vertex">
+	attribute vec3 position;
+	attribute vec3 tangent;
+	attribute vec3 bitangent;
+	attribute vec3 normal;
+	attribute vec2 texCoord;
+	uniform int texCoordFlag;
+    uniform mat4 modelMatrix;
+	uniform mat4 viewProjectionMatrix;
+	uniform mat3 normalMatrix;
+
+	varying mediump vec2 tCoord;
+	varying mediump vec3 fPosition;
+	varying mediump mat3 invTbn;
+	varying mediump vec3 fNormal;
+	varying mediump vec3 fTan;
+	varying mediump vec3 fBitan;
+	varying mediump float tFlag;
+
+	void main(void) {
+	   gl_Position = viewProjectionMatrix*modelMatrix*vec4(position, 1.0);
+	   fPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+
+	   fNormal = normalize(normalMatrix * normal);
+	   fTan = normalize(normalMatrix * tangent);
+	   fBitan = normalize(normalMatrix * bitangent);
+
+	   if (texCoordFlag == 1)
+	   {
+    	    // compute invTbn matrix
+			invTbn = mat3(
+				fTan.x, fBitan.x, fNormal.x,
+				fTan.y, fBitan.y, fNormal.y,
+				fTan.z, fBitan.z, fNormal.z
+			);
+	        tFlag = 1.0;
+	   }
+	   else
+	   {
+	        invTbn = mat3(1.0); // identity matrix
+	        tFlag = 0.0;
+	   }
+
+       tCoord = texCoord;
+
+	}
+
+</script>
+
+<script id="fragment-shader-code" type="x-shader/x-fragment">
+	precision mediump float;
+	const int numberOfLights = 3;
+	uniform sampler2D diffuseMap;
+	uniform sampler2D normalMap;
+
+	varying vec2 tCoord;
+	uniform vec3 I0[numberOfLights];
+	uniform vec3 eye;
+	uniform vec4 L[numberOfLights];
+	uniform vec3 kd;
+	uniform vec3 ks;
+	uniform float shininess;
+	varying vec3 fPosition;
+	varying mat3 invTbn;
+	varying vec3 fNormal;
+	varying float tFlag;
+
+	
+	
+	void main(void) {
+
+        vec3 normal = fNormal;
+
+	    if (tFlag == 1.0)
+   	        normal = normalize(((texture2D(normalMap,tCoord).xyz) * 2.0) - 1.0);
+
+	    vec4 totalColor = vec4(0.0, 0.0, 0.0, 0.0);
+	    for (int idx = 0; idx < numberOfLights; idx++)
+	    {
+	        
+	        vec3 lightDirection = normalize((L[idx].xyz - fPosition) * invTbn);
+   			float lambertTerm = max(dot(normal,lightDirection), 0.0);
+			vec3 eyeDirection = normalize((eye-fPosition) * invTbn);
+			vec3 reflectDir = reflect(-lightDirection, normal);
+			float Is = pow(max(dot(reflectDir, eyeDirection), 0.0), shininess);
+			vec3 color = kd * lambertTerm * I0[idx] + ks * Is * I0[idx];
+			totalColor += vec4(color, 1.0) * texture2D(diffuseMap, tCoord);
+			
+		}
+		
+		gl_FragColor = totalColor;
+	}
+	
+</script>
+<script type="text/javascript" src="gl-matrix.js"></script>
+<script type="text/javascript" src="utilities.js"></script>
+<script type="text/javascript" src="assimpJsonMeshObjectV2.js"></script>
+<script type="text/javascript" src="ourJsonMeshObjectV2.js"></script>
+<script type="text/javascript" src="simpleMeshObjectV2.js"></script>
+<script type="text/javascript" src="rendererV2.js"></script>
+</head>
+<body onload="main('myCanvas');">
+<br/>
+<button type="button" id="animToggle">Toggle Animation.</button><div id="modelMenu"></div>
+<div>
+<canvas id="myCanvas" width="512" height="512" style="border:5px solid lightgray;"> </canvas>
+</div>
+</body>
+</html>
