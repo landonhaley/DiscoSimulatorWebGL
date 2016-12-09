@@ -1,16 +1,8 @@
 <!DOCTYPE html>
 <!-- saved from url=(0062)http://math.hws.edu/graphicsbook/source/webgl/cube-camera.html -->
-<html><!--
-     This page is an example of reflection mapping, using a
-     dynamic cubemap texture that is redrawn in each frame
-     of an animation.  The animation shows colored cubes rotating
-     around a perfectly reflective object.  The cubemap texture
-     applied as a reflection map to the object in the center of
-     the scene.  There is also a skybox, which uses a separate,
-     static cubemap texture.
---><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<title>WebGL Dynamic Reflection Map</title>
+<title>Disco Simulator</title>
 <style>
     body {
         background-color: #DDDDDD;
@@ -314,8 +306,7 @@ function draw() {
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, dynamicCubemap);
     gl.enableVertexAttribArray(dataENV.a_coords_loc);
     gl.enableVertexAttribArray(dataENV.a_normal_loc);
-    var objectNumber = Number(document.getElementById("object").value);
-    reflectiveObjects[objectNumber].render();
+    reflectiveObjects[0].render();
     gl.disableVertexAttribArray(dataENV.a_coords_loc);
     gl.disableVertexAttribArray(dataENV.a_normal_loc);
 
@@ -375,25 +366,6 @@ function createDynamicCubemap() {
     mat4.rotateX(modelview,modelview,-Math.PI/2);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_Y, dynamicCubemap, 0);
     renderSkyboxAndCubes();
-
-    /* The commented out section below is an alternative way of computing the positive and negative Y images,
-       including the x/y flip.  The rotations that are used in this version correspond are the correct rotations
-       based on the layout of the six images in a cubemap.   The single rotation used above is equivalent to the
-       flip and two rotations used below. */
-
-    //mat4.identity(modelview);
-    //mat4.scale(modelview,modelview,[-1,-1,1]);
-    //mat4.rotateX(modelview,modelview,Math.PI/2);
-    //mat4.rotateY(modelview,modelview,Math.PI);
-    //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, dynamicCubemap, 0);
-    //renderSkyboxAndCubes();
-    //
-    //mat4.identity(modelview);
-    //mat4.scale(modelview,modelview,[-1,-1,1]);
-    //mat4.rotateX(modelview,modelview,-Math.PI/2);
-    //mat4.rotateY(modelview,modelview,Math.PI);
-    //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_CUBE_MAP_POSITIVE_Y, dynamicCubemap, 0);
-    //renderSkyboxAndCubes();
 
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, dynamicCubemap);
     gl.generateMipmap( gl.TEXTURE_CUBE_MAP );
@@ -511,7 +483,6 @@ function createMovingCubeData() {
  * when finished to start the animation
  */
 function loadTextureCube() {
-    document.getElementById("headline").innerHTML = "WebGL Dynamic Cubemap -- LOADING CUBEMAP TEXTURE";
     var ct = 0;
     var img = new Array(6);
     var urls = [
@@ -524,7 +495,6 @@ function loadTextureCube() {
         img[i].onload = function() {
             ct++;
             if (ct == 6) {
-                document.getElementById("headline").innerHTML = "WebGL Dynamic Cubemap";
                 skyboxCubemap = gl.createTexture();
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxCubemap);
                 try {
@@ -769,20 +739,12 @@ function initGL() {
 
     skyboxCube = createModelSB( cube(100) );  // create the model for the skybox
 
-    reflectiveObjects = new Array(6);  // create the models for the reflective objects that appear at the center of the scen
-    reflectiveObjects[0] = createModelENV( cube(0.9) );
-    reflectiveObjects[1] = createModelENV( uvSphere(0.6,64,32) );
+    reflectiveObjects = new Array(1);
     var discoball = uvCylinder();
     for (var i = 0; i < discoball.vertexPositions.length; i++) {
-        discoball.vertexPositions[i] *= 0.35; // scale teapot model to a size that matches other objects
+        discoball.vertexPositions[i] *= 0.35; // scale disco ball model to a size that matches other objects
     }
-    reflectiveObjects[2] = createModelENV( discoball );
-    reflectiveObjects[3] = createModelENV( uvCone() );
-    reflectiveObjects[4] = createModelENV( uvTorus(0.65,0.2,64,24) );
-    for (var i = 0; i < teapotModel.vertexPositions.length; i++) {
-        teapotModel.vertexPositions[i] *= 0.05; // scale teapot model to a size that matches other objects
-    }
-    reflectiveObjects[5] = createModelENV( teapotModel );
+    reflectiveObjects[0] = createModelENV( discoball );
 
     cubeModel = createModelLIT( cube(1.8) );  // create the model tha tis used for drawing the moving cubes
 
@@ -867,44 +829,29 @@ function init() {
             "<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
         return;
     }
-    document.getElementById("animCheckbox").checked = true;
-    document.getElementById("animCheckbox").onchange = doAnimationCheckbox;
-    document.getElementById("object").value = "2";
-    document.getElementById("object").onchange = function() {
-        draw();
-        document.getElementById("reset").focus();  // to make sure arrow key input is not sent to popup menu
-    }
-    document.addEventListener("keydown", doKey, false);
-    document.getElementById("reset").onclick = function() {
-        rotX = rotY = 0;
-        rotator.setAngles(0,0);
-        frameNumber = 0;
-        draw();
-    };
+   
     rotator = new SimpleRotator(canvas,function() {
         if (!animating)
            draw();
     },3);
     createMovingCubeData();
     loadTextureCube();
+    setInterval(genRandomColor, 1300);
 }
 
 
 
 </script>
 </head>
-<body onload="init()" data-pinterest-extension-installed="cr2.0.5">
+<center>
+<body onload="init()" data-pinterest-extension-installed="cr2.0.5" style="margin:auto;">
 
-<h2 id="headline">WebGL Dynamic Cubemap</h2>
+<h2 id="headline">Disco Simulator</h2>
 
 <noscript>&lt;hr&gt;&lt;h3&gt;This page requires Javascript and a web browser that supports WebGL&lt;/h3&gt;&lt;hr&gt;</noscript>
 
-<p><label><input type="checkbox" id="animCheckbox"> <b>Animate</b></label>
-<label><b>The Reflective Object:</b> <select id="object">
-    <option value="2">Cylinder</option>
-</select></label>
-<button id="color" onclick="setInterval(genRandomColor, 3000)">Change Color</button>
-<button id="reset">Reset</button>
+<p>
+
 
 
 </p><div id="canvas-holder">
@@ -917,4 +864,4 @@ function init() {
 
 
 
-</body></html>
+</body></center></html>
